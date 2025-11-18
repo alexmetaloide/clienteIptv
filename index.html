@@ -1,0 +1,59 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <!-- Viewport ajustado para impedir zoom e dar sensação de app nativo -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#0f172a" />
+    
+    <!-- Configurações para iOS (iPhone) -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="IPTV Manager">
+
+    <title>Controle de Clientes IPTV</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom": "https://aistudiocdn.com/react-dom@^19.2.0",
+    "react-dom/client": "https://aistudiocdn.com/react-dom@^19.2.0/client",
+    "recharts": "https://aistudiocdn.com/recharts@^2.12.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1",
+    "vite": "https://aistudiocdn.com/vite@^7.2.2",
+    "vite-plugin-pwa": "https://aistudiocdn.com/vite-plugin-pwa@^1.1.0"
+  }
+}
+</script>
+<style>
+  @keyframes fadeInRight {
+    from {
+      opacity: 0;
+      transform: translateX(100%);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  .animate-fade-in-right {
+    animation: fadeInRight 0.5s ease-out forwards;
+  }
+  
+  /* Remove highlight azul ao tocar em botões no mobile */
+  body {
+    -webkit-tap-highlight-color: transparent;
+  }
+</style>
+</head>
+  <body class="bg-slate-900">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>

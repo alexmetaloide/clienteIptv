@@ -1,0 +1,5 @@
+{
+  "name": "Controle de Clientes IPTV",
+  "description": "Um aplicativo para gerenciar assinantes de IPTV, seus planos, pagamentos e visualizar estatísticas de forma simples e automática.",
+  "requestFramePermissions": []
+}
