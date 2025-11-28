@@ -2,7 +2,7 @@
 import React from 'react';
 import { HomeIcon, UsersIcon, ChartBarIcon } from './icons/Icons';
 
-type Page = 'dashboard' | 'clients' | 'statistics';
+type Page = 'dashboard' | 'clients' | 'statistics' | 'plans';
 
 interface BottomNavProps {
     currentPage: Page;

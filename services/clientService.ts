@@ -1,5 +1,5 @@
 
-import { Client, Plan, Status } from '../types';
+import { Client, Status } from '../types';
 
 const STORAGE_KEY = 'iptv_clients_db_v1';
 
@@ -11,13 +11,13 @@ const getInitialClients = (): Client[] => {
 
     const dayToday = today.getDate();
     const dayTomorrow = tomorrow.getDate();
-    
+
     return [
-        { id: '1', name: 'João Silva', contact: '5511987654321', plan: Plan['2_TELAS'], monthlyValue: 35, dueDate: 10, status: Status.Ativo },
-        { id: '2', name: 'Maria Oliveira', contact: '5521912345678', plan: Plan['1_TELA'], monthlyValue: 25, dueDate: 15, status: Status.Ativo },
-        { id: '3', name: 'Pedro Souza', contact: '', plan: Plan['1_TELA_YTP'], monthlyValue: 45, dueDate: 20, status: Status.Inativo },
-        { id: '4', name: 'Ana Costa', contact: '5541933332222', plan: Plan['2_TELAS_YTP'], monthlyValue: 55, dueDate: dayTomorrow, status: Status.Ativo },
-        { id: '5', name: 'Carlos Pereira', contact: '5585999998888', plan: Plan['1_TELA'], monthlyValue: 25, dueDate: dayToday, status: Status.Ativo },
+        { id: '1', name: 'João Silva', contact: '5511987654321', plan: '2 TELAS', monthlyValue: 35, dueDate: 10, status: Status.Ativo },
+        { id: '2', name: 'Maria Oliveira', contact: '5521912345678', plan: '1 TELA', monthlyValue: 25, dueDate: 15, status: Status.Ativo },
+        { id: '3', name: 'Pedro Souza', contact: '', plan: '1 TELA + YouTube_P', monthlyValue: 45, dueDate: 20, status: Status.Inativo },
+        { id: '4', name: 'Ana Costa', contact: '5541933332222', plan: '2 TELAS + YouTube_P', monthlyValue: 55, dueDate: dayTomorrow, status: Status.Ativo },
+        { id: '5', name: 'Carlos Pereira', contact: '5585999998888', plan: '1 TELA', monthlyValue: 25, dueDate: dayToday, status: Status.Ativo },
     ];
 };
 
@@ -28,7 +28,7 @@ export const clientService = {
     getAll: async (): Promise<Client[]> => {
         await simulateDelay();
         const storedData = localStorage.getItem(STORAGE_KEY);
-        
+
         if (!storedData) {
             const initialData = getInitialClients();
             localStorage.setItem(STORAGE_KEY, JSON.stringify(initialData));
@@ -58,7 +58,7 @@ export const clientService = {
 
         const clients: Client[] = JSON.parse(storedData);
         const index = clients.findIndex(c => c.id === updatedClient.id);
-        
+
         if (index !== -1) {
             clients[index] = updatedClient;
             localStorage.setItem(STORAGE_KEY, JSON.stringify(clients));

@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Client, Plan, Status } from '../types';
+import { Client, Status } from '../types';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface StatisticsProps {
@@ -24,21 +24,21 @@ const Statistics: React.FC<StatisticsProps> = ({ clients }) => {
             { name: 'Ativos', value: activeClients.length },
             { name: 'Inativos', value: inactiveClients.length },
         ];
-        
+
         const monthlyRevenue = activeClients.reduce((sum, c) => sum + c.monthlyValue, 0);
         const annualRevenue = monthlyRevenue * 12;
 
         const revenueData = [
             { name: 'Receita', Mensal: monthlyRevenue, Anual: annualRevenue },
         ];
-        
+
         const planCounts = clients.reduce((acc, client) => {
             acc[client.plan] = (acc[client.plan] || 0) + 1;
             return acc;
-        }, {} as Record<Plan, number>);
-        
+        }, {} as Record<string, number>);
+
         const mostSoldPlans = Object.keys(planCounts)
-            .map((plan) => ({ plan, count: planCounts[plan as Plan] }))
+            .map((plan) => ({ plan, count: planCounts[plan] }))
             .sort((a, b) => b.count - a.count);
 
         return { clientStatusData, revenueData, mostSoldPlans };
@@ -70,7 +70,7 @@ const Statistics: React.FC<StatisticsProps> = ({ clients }) => {
                 <ChartContainer title="Receita Mensal vs. Anual">
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={statsData.revenueData} layout="vertical">
-                            <XAxis type="number" stroke="#94A3B8" tickFormatter={(value) => `R$${Number(value)/1000}k`} />
+                            <XAxis type="number" stroke="#94A3B8" tickFormatter={(value) => `R$${Number(value) / 1000}k`} />
                             <YAxis type="category" dataKey="name" stroke="#94A3B8" />
                             <Tooltip formatter={(value) => (value as number).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} />
                             <Legend />
@@ -83,11 +83,11 @@ const Statistics: React.FC<StatisticsProps> = ({ clients }) => {
                 <ChartContainer title="Planos Mais Vendidos">
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={statsData.mostSoldPlans} layout="vertical" margin={{ top: 5, right: 30, left: 80, bottom: 5 }}>
-                             <XAxis type="number" stroke="#94A3B8" allowDecimals={false} />
-                             <YAxis type="category" dataKey="plan" stroke="#94A3B8" />
-                             <Tooltip formatter={(value: number) => `${value} assinantes`} />
-                             <Legend />
-                             <Bar dataKey="count" fill="#6366F1" name="Assinantes" />
+                            <XAxis type="number" stroke="#94A3B8" allowDecimals={false} />
+                            <YAxis type="category" dataKey="plan" stroke="#94A3B8" />
+                            <Tooltip formatter={(value: number) => `${value} assinantes`} />
+                            <Legend />
+                            <Bar dataKey="count" fill="#6366F1" name="Assinantes" />
                         </BarChart>
                     </ResponsiveContainer>
                 </ChartContainer>

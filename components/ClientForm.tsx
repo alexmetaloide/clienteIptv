@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { Client, Plan, Status } from '../types';
+import React, { useState, useEffect } from 'react';
+import { Client, Status } from '../types';
 import { BackIcon } from './icons/Icons';
+import { usePlans } from '../contexts/PlanContext';
 
 interface ClientFormProps {
     client?: Client;
@@ -8,27 +9,30 @@ interface ClientFormProps {
     onBack: () => void;
 }
 
-const planPrices: Record<Plan, number> = {
-    [Plan['1_TELA']]: 25,
-    [Plan['2_TELAS']]: 35,
-    [Plan['1_TELA_YTP']]: 45,
-    [Plan['2_TELAS_YTP']]: 55,
-};
-
 const ClientForm: React.FC<ClientFormProps> = ({ client, onSave, onBack }) => {
+    const { plans } = usePlans();
     const [name, setName] = useState(client?.name || '');
     const [contact, setContact] = useState(client?.contact || '');
-    const [plan, setPlan] = useState<Plan>(client?.plan || Plan['1_TELA']);
-    const [monthlyValue, setMonthlyValue] = useState(client?.monthlyValue ?? planPrices[client?.plan || Plan['1_TELA']]);
+    const [plan, setPlan] = useState(client?.plan || (plans.length > 0 ? plans[0].name : ''));
+    const [monthlyValue, setMonthlyValue] = useState(client?.monthlyValue || (plans.length > 0 ? plans[0].price : 0));
     const [dueDate, setDueDate] = useState(client?.dueDate || 1);
     const [status, setStatus] = useState<Status>(client?.status || Status.Ativo);
 
     const annualValue = monthlyValue * 12;
 
-    const handlePlanChange = (newPlan: Plan) => {
-        setPlan(newPlan);
-        if (newPlan in planPrices) {
-            setMonthlyValue(planPrices[newPlan]);
+    // Update default values when plans load if creating a new client
+    useEffect(() => {
+        if (!client && plans.length > 0 && !plan) {
+            setPlan(plans[0].name);
+            setMonthlyValue(plans[0].price);
+        }
+    }, [plans, client, plan]);
+
+    const handlePlanChange = (selectedPlanName: string) => {
+        setPlan(selectedPlanName);
+        const selectedPlan = plans.find(p => p.name === selectedPlanName);
+        if (selectedPlan) {
+            setMonthlyValue(selectedPlan.price);
         }
     };
 
@@ -38,7 +42,7 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onSave, onBack }) => {
             alert('O campo Nome é obrigatório.');
             return;
         }
-        
+
         const clientPayload: Client = {
             id: client?.id || crypto.randomUUID(),
             name,
@@ -61,7 +65,7 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onSave, onBack }) => {
                     {client ? 'Editar Cliente' : 'Novo Cliente'}
                 </h1>
             </header>
-            
+
             <div className="bg-slate-800 p-4 sm:p-6 rounded-lg space-y-4">
                 <div>
                     <label className="block text-sm font-medium text-slate-300 mb-1">Nome Completo</label>
@@ -73,8 +77,12 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onSave, onBack }) => {
                 </div>
                 <div>
                     <label className="block text-sm font-medium text-slate-300 mb-1">Plano</label>
-                    <select value={plan} onChange={e => handlePlanChange(e.target.value as Plan)} className="w-full bg-slate-700 text-white p-3 rounded-lg border border-slate-600 focus:outline-none focus:ring-2 focus:ring-orange-500">
-                        {Object.values(Plan).map(p => <option key={p} value={p}>{p}</option>)}
+                    <select value={plan} onChange={e => handlePlanChange(e.target.value)} className="w-full bg-slate-700 text-white p-3 rounded-lg border border-slate-600 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                        {plans.map(p => <option key={p.id} value={p.name}>{p.name}</option>)}
+                        {/* If the client has a plan that is no longer in the list, show it as an option to preserve data */}
+                        {client && !plans.find(p => p.name === client.plan) && (
+                            <option value={client.plan}>{client.plan} (Arquivado)</option>
+                        )}
                     </select>
                 </div>
                 <div>

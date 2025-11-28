@@ -1,23 +1,23 @@
 import React, { useState, useMemo, useRef } from 'react';
-import { Client, Status, Plan } from '../types';
-import { PlusIcon, DownloadIcon, UploadIcon } from './icons/Icons';
+import { Client, Status } from '../types';
+import { PlusIcon, DownloadIcon, UploadIcon, BackIcon } from './icons/Icons';
+import { usePlans } from '../contexts/PlanContext';
 
 interface ClientListProps {
     clients: Client[];
     onSelectClient: (client: Client) => void;
     onAddClient: () => void;
     onUpdateAllClients: (clients: Client[]) => void;
+    onBack: () => void;
 }
 
-const validateClients = (data: any): { validClients: Client[], errors: string[] } => {
+const validateClients = (data: any, planNames: string[]): { validClients: Client[], errors: string[] } => {
     if (!Array.isArray(data)) {
         return { validClients: [], errors: ["O arquivo não contém uma lista (array) de clientes."] };
     }
 
     const validClients: Client[] = [];
     const errors: string[] = [];
-
-    const planValues = Object.values(Plan);
     const statusValues = Object.values(Status);
 
     data.forEach((item: any, index: number) => {
@@ -31,7 +31,11 @@ const validateClients = (data: any): { validClients: Client[], errors: string[] 
         if (typeof item.name !== 'string' || !item.name) clientErrors.push('Nome ausente ou inválido');
         if (typeof item.monthlyValue !== 'number') clientErrors.push('Valor Mensal ausente ou com formato inválido');
         if (typeof item.dueDate !== 'number' || item.dueDate < 1 || item.dueDate > 31) clientErrors.push('Dia do Vencimento precisa ser um número entre 1 e 31');
-        if (!planValues.includes(item.plan)) clientErrors.push(`Plano '${item.plan || 'indefinido'}' é inválido`);
+
+        // Allow plans that are not in the current list (legacy/archived plans), but warn if it looks completely wrong? 
+        // For now, we just check if it's a string.
+        if (typeof item.plan !== 'string' || !item.plan) clientErrors.push(`Plano inválido`);
+
         if (!statusValues.includes(item.status)) clientErrors.push(`Status '${item.status || 'indefinido'}' é inválido`);
 
         if (clientErrors.length > 0) {
@@ -53,10 +57,11 @@ const validateClients = (data: any): { validClients: Client[], errors: string[] 
 };
 
 
-const ClientList: React.FC<ClientListProps> = ({ clients, onSelectClient, onAddClient, onUpdateAllClients }) => {
+const ClientList: React.FC<ClientListProps> = ({ clients, onSelectClient, onAddClient, onUpdateAllClients, onBack }) => {
+    const { plans } = usePlans();
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<'all' | Status>('all');
-    const [planFilter, setPlanFilter] = useState<'all' | Plan>('all');
+    const [planFilter, setPlanFilter] = useState<'all' | string>('all');
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const filteredClients = useMemo(() => {
@@ -97,7 +102,7 @@ const ClientList: React.FC<ClientListProps> = ({ clients, onSelectClient, onAddC
             try {
                 const text = e.target?.result;
                 if (typeof text !== 'string') throw new Error("Não foi possível ler o conteúdo do arquivo.");
-                
+
                 let importedData;
                 try {
                     importedData = JSON.parse(text);
@@ -106,7 +111,8 @@ const ClientList: React.FC<ClientListProps> = ({ clients, onSelectClient, onAddC
                     return;
                 }
 
-                const { validClients, errors } = validateClients(importedData);
+                const planNames = plans.map(p => p.name);
+                const { validClients, errors } = validateClients(importedData, planNames);
 
                 if (errors.length > 0) {
                     const errorMessage = `Encontramos alguns problemas no arquivo:\n\n- ${errors.slice(0, 5).join('\n- ')}${errors.length > 5 ? `\n- ...e mais ${errors.length - 5} erro(s).` : ''}\n\nVocê deseja importar os ${validClients.length} clientes que parecem estar corretos?`;
@@ -114,7 +120,7 @@ const ClientList: React.FC<ClientListProps> = ({ clients, onSelectClient, onAddC
                         return;
                     }
                 }
-                
+
                 if (validClients.length === 0) {
                     alert("Nenhum cliente válido foi encontrado no arquivo para importar.");
                     return;
@@ -140,17 +146,27 @@ const ClientList: React.FC<ClientListProps> = ({ clients, onSelectClient, onAddC
             {status}
         </span>
     );
-    
+
     return (
         <div className="space-y-4">
             <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold text-white">Clientes</h1>
-                    <p className="text-slate-400 mt-1">Gerencie sua base de assinantes.</p>
+                <div className="flex items-center">
+                    <button type="button" onClick={onBack} className="p-2 rounded-full hover:bg-slate-700 mr-2 sm:hidden">
+                        <BackIcon />
+                    </button>
+                    <div>
+                        <div className="flex items-center">
+                            <button type="button" onClick={onBack} className="p-2 rounded-full hover:bg-slate-700 mr-2 hidden sm:block">
+                                <BackIcon />
+                            </button>
+                            <h1 className="text-3xl font-bold text-white">Clientes</h1>
+                        </div>
+                        <p className="text-slate-400 mt-1 ml-0 sm:ml-12">Gerencie sua base de assinantes.</p>
+                    </div>
                 </div>
                 <div className="flex flex-col gap-2">
                     <div className="flex flex-col sm:flex-row gap-2">
-                         <button
+                        <button
                             onClick={handleExport}
                             className="flex items-center justify-center bg-slate-600 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-lg transition-colors"
                         >
@@ -173,7 +189,7 @@ const ClientList: React.FC<ClientListProps> = ({ clients, onSelectClient, onAddC
                             <span className="ml-2">Novo Cliente</span>
                         </button>
                     </div>
-                     <p className="text-xs text-slate-500 text-center sm:text-right pt-1">
+                    <p className="text-xs text-slate-500 text-center sm:text-right pt-1">
                         Dica: Exporte e salve no Google Drive para ter um backup na nuvem.
                     </p>
                 </div>
@@ -198,13 +214,13 @@ const ClientList: React.FC<ClientListProps> = ({ clients, onSelectClient, onAddC
                         <button onClick={() => setPlanFilter('all')} className={`px-3 py-1.5 text-xs rounded-full ${planFilter === 'all' ? 'bg-indigo-500 text-white' : 'bg-slate-700 text-slate-300'}`}>
                             Todos os Planos
                         </button>
-                        {Object.values(Plan).map(plan => (
-                            <button 
-                                key={plan} 
-                                onClick={() => setPlanFilter(plan)} 
-                                className={`px-3 py-1.5 text-xs rounded-full ${planFilter === plan ? 'bg-indigo-500 text-white' : 'bg-slate-700 text-slate-300'}`}
+                        {plans.map(plan => (
+                            <button
+                                key={plan.id}
+                                onClick={() => setPlanFilter(plan.name)}
+                                className={`px-3 py-1.5 text-xs rounded-full ${planFilter === plan.name ? 'bg-indigo-500 text-white' : 'bg-slate-700 text-slate-300'}`}
                             >
-                                {plan}
+                                {plan.name}
                             </button>
                         ))}
                     </div>

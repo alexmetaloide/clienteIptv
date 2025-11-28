@@ -5,6 +5,7 @@ import { UsersIcon, CheckCircleIcon, XCircleIcon, CurrencyDollarIcon, CalendarIc
 interface DashboardProps {
     clients: Client[];
     onNavigateToClients: () => void;
+    onNavigateToPlans: () => void;
 }
 
 const StatCard: React.FC<{
@@ -24,7 +25,7 @@ const StatCard: React.FC<{
     </div>
 );
 
-const Dashboard: React.FC<DashboardProps> = ({ clients, onNavigateToClients }) => {
+const Dashboard: React.FC<DashboardProps> = ({ clients, onNavigateToClients, onNavigateToPlans }) => {
     const stats = useMemo(() => {
         const totalClients = clients.length;
         const activeClients = clients.filter(c => c.status === Status.Ativo).length;
@@ -71,30 +72,30 @@ const Dashboard: React.FC<DashboardProps> = ({ clients, onNavigateToClients }) =
                 <h1 className="text-3xl font-bold text-white">📺 Dashboard Geral</h1>
                 <p className="text-slate-400 mt-1">Resumo do seu negócio.</p>
             </header>
-            
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <StatCard 
-                    icon={<UsersIcon />} 
-                    title="Total de Clientes" 
-                    value={stats.totalClients} 
+                <StatCard
+                    icon={<UsersIcon />}
+                    title="Total de Clientes"
+                    value={stats.totalClients}
                     color="bg-blue-500"
                 />
-                <StatCard 
-                    icon={<CheckCircleIcon />} 
-                    title="Clientes Ativos" 
-                    value={stats.activeClients} 
+                <StatCard
+                    icon={<CheckCircleIcon />}
+                    title="Clientes Ativos"
+                    value={stats.activeClients}
                     color="bg-green-500"
                 />
-                <StatCard 
-                    icon={<XCircleIcon />} 
-                    title="Clientes Inativos" 
-                    value={stats.inactiveClients} 
+                <StatCard
+                    icon={<XCircleIcon />}
+                    title="Clientes Inativos"
+                    value={stats.inactiveClients}
                     color="bg-red-500"
                 />
-                <StatCard 
-                    icon={<CurrencyDollarIcon />} 
-                    title="Receita Mensal" 
-                    value={stats.monthlyRevenue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} 
+                <StatCard
+                    icon={<CurrencyDollarIcon />}
+                    title="Receita Mensal"
+                    value={stats.monthlyRevenue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                     color="bg-orange-500"
                 />
             </div>
@@ -128,12 +129,18 @@ const Dashboard: React.FC<DashboardProps> = ({ clients, onNavigateToClients }) =
                 </div>
             </div>
 
-            <div className="pt-2">
+            <div className="pt-2 flex flex-col sm:flex-row gap-4">
                 <button
                     onClick={onNavigateToClients}
-                    className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 px-4 rounded-lg text-lg transition-transform transform hover:scale-105"
+                    className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 px-4 rounded-lg text-lg transition-transform transform hover:scale-105"
                 >
                     Gerenciar Clientes
+                </button>
+                <button
+                    onClick={onNavigateToPlans}
+                    className="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold py-4 px-4 rounded-lg text-lg transition-transform transform hover:scale-105"
+                >
+                    Gerenciar Planos
                 </button>
             </div>
         </div>

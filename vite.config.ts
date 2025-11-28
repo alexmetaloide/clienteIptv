@@ -43,5 +43,5 @@ export default defineConfig({
   // IMPORTANTE: O 'base' deve ser o nome do seu repositório entre barras.
   // Exemplo: Se seu repositório for 'controle-iptv', mude para '/controle-iptv/'
   // Se for um site de usuário (username.github.io), deixe apenas '/'
-  base: '/controle-iptv/', 
+  base: '/gerenciamento-cliente-iptv/',
 })
