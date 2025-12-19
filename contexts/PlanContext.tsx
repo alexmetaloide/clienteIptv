@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Plan } from '../types';
-import { firebasePlanService } from '../services/firebaseService';
+import { supabasePlanService } from '../services/supabaseService';
 
 interface PlanContextType {
     plans: Plan[];
@@ -26,19 +26,19 @@ export const PlanProvider: React.FC<{ children: React.ReactNode }> = ({ children
     useEffect(() => {
         const loadPlans = async () => {
             try {
-                const fetchedPlans = await firebasePlanService.getAll();
+                const fetchedPlans = await supabasePlanService.getAll();
                 if (fetchedPlans.length === 0) {
                     // Initialize with default plans if database is empty
                     for (const plan of DEFAULT_PLANS) {
-                        await firebasePlanService.create(plan);
+                        await supabasePlanService.create(plan);
                     }
-                    const newPlans = await firebasePlanService.getAll();
+                    const newPlans = await supabasePlanService.getAll();
                     setPlans(newPlans);
                 } else {
                     setPlans(fetchedPlans);
                 }
             } catch (error) {
-                console.error("Failed to load plans from Firebase", error);
+                console.error("Failed to load plans from Supabase", error);
             } finally {
                 setIsLoading(false);
             }
@@ -48,7 +48,7 @@ export const PlanProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const addPlan = async (newPlan: Omit<Plan, 'id'>) => {
         try {
-            const newId = await firebasePlanService.create(newPlan);
+            const newId = await supabasePlanService.create(newPlan);
             setPlans(prev => [...prev, { ...newPlan, id: newId }]);
         } catch (error) {
             console.error("Error adding plan:", error);
@@ -58,7 +58,7 @@ export const PlanProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const updatePlan = async (updatedPlan: Plan) => {
         try {
-            await firebasePlanService.update(updatedPlan.id, updatedPlan);
+            await supabasePlanService.update(updatedPlan.id, updatedPlan);
             setPlans(prev => prev.map(p => p.id === updatedPlan.id ? updatedPlan : p));
         } catch (error) {
             console.error("Error updating plan:", error);
@@ -68,7 +68,7 @@ export const PlanProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const deletePlan = async (id: string) => {
         try {
-            await firebasePlanService.delete(id);
+            await supabasePlanService.delete(id);
             setPlans(prev => prev.filter(p => p.id !== id));
         } catch (error) {
             console.error("Error deleting plan:", error);

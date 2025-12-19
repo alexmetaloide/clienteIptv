@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Client, Status } from './types';
-import { firebaseClientService } from './services/firebaseService';
+import { supabaseClientService } from './services/supabaseService';
 import Dashboard from './components/Dashboard';
 import ClientList from './components/ClientList';
 import ClientDetail from './components/ClientDetail';
@@ -29,7 +29,7 @@ export const App: React.FC = () => {
     useEffect(() => {
         const loadClients = async () => {
             try {
-                const data = await firebaseClientService.getAll();
+                const data = await supabaseClientService.getAll();
                 setClients(data);
             } catch (error) {
                 console.error("Falha ao carregar clientes", error);
@@ -45,8 +45,8 @@ export const App: React.FC = () => {
     const addClient = async (client: Client) => {
         // Atualização Otimista (Atualiza UI imediatamente)
         setClients(prevClients => [...prevClients, client]);
-        // Persistência - Firebase retorna o ID
-        const newId = await firebaseClientService.create(client);
+        // Persistência - Supabase retorna o ID
+        const newId = await supabaseClientService.create(client);
         // Atualiza o cliente com o ID retornado
         setClients(prevClients =>
             prevClients.map(c => c.id === client.id ? { ...client, id: newId } : c)
@@ -59,31 +59,31 @@ export const App: React.FC = () => {
             prevClients.map(c => (c.id === updatedClient.id ? updatedClient : c))
         );
         // Persistência
-        await firebaseClientService.update(updatedClient.id, updatedClient);
+        await supabaseClientService.update(updatedClient.id, updatedClient);
     };
 
     const deleteClient = async (clientId: string) => {
         // Atualização Otimista
         setClients(prevClients => prevClients.filter(c => c.id !== clientId));
         // Persistência
-        await firebaseClientService.delete(clientId);
+        await supabaseClientService.delete(clientId);
     };
 
     const handleUpdateAllClients = async (newClients: Client[]) => {
         setIsLoading(true);
-        // TODO: Implement bulk import with Firebase
+        // TODO: Implement bulk import with Supabase
         // For now, we'll import clients one by one
         try {
             // Delete all existing clients
-            const existingClients = await firebaseClientService.getAll();
+            const existingClients = await supabaseClientService.getAll();
             for (const client of existingClients) {
-                await firebaseClientService.delete(client.id);
+                await supabaseClientService.delete(client.id);
             }
             // Add new clients
             const newClientsWithIds: Client[] = [];
             for (const client of newClients) {
                 const { id, ...clientData } = client;
-                const newId = await firebaseClientService.create(clientData);
+                const newId = await supabaseClientService.create(clientData);
                 newClientsWithIds.push({ ...clientData, id: newId });
             }
             setClients(newClientsWithIds);

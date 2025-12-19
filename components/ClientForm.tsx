@@ -36,6 +36,15 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onSave, onBack }) => {
         }
     };
 
+
+    // Helper para gerar ID compatível
+    const generateId = () => {
+        if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+            return crypto.randomUUID();
+        }
+        return Date.now().toString(36) + Math.random().toString(36).substr(2);
+    };
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!name) {
@@ -44,7 +53,7 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onSave, onBack }) => {
         }
 
         const clientPayload: Client = {
-            id: client?.id || crypto.randomUUID(),
+            id: client?.id || generateId(),
             name,
             contact,
             plan,
@@ -54,6 +63,7 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onSave, onBack }) => {
         };
         onSave(clientPayload);
     };
+
 
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
