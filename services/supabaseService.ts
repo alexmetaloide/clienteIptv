@@ -87,11 +87,15 @@ export const supabasePlanService = {
         }
     },
 
-    create: async (plan: Omit<Plan, 'id'>): Promise<string> => {
+
+    create: async (plan: Plan | Omit<Plan, 'id'>): Promise<string> => {
         try {
+            // Remove 'id' if present to let Supabase generate it
+            const { id, ...planData } = plan as Plan;
+
             const { data, error } = await supabase
                 .from(PLANS_TABLE)
-                .insert([plan])
+                .insert([planData])
                 .select()
                 .single();
 
