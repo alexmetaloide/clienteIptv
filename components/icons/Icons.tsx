@@ -127,3 +127,12 @@ export const CloseIcon = () => (
         <line x1="6" y1="6" x2="18" y2="18"></line>
     </svg>
 );
+
+export const LogoutIcon = () => (
+    <svg {...iconProps} className="w-5 h-5" viewBox="0 0 24 24">
+        <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"></path>
+        <polyline points="16 17 21 12 16 7"></polyline>
+        <line x1="21" y1="12" x2="9" y2="12"></line>
+    </svg>
+);
+

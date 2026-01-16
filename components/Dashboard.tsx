@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { Client, Status } from '../types';
-import { UsersIcon, CheckCircleIcon, XCircleIcon, CurrencyDollarIcon, CalendarIcon } from './icons/Icons';
+import { UsersIcon, CheckCircleIcon, XCircleIcon, CurrencyDollarIcon, CalendarIcon, LogoutIcon } from './icons/Icons';
+import { useAuth } from '../contexts/AuthContext';
 
 interface DashboardProps {
     clients: Client[];
@@ -26,6 +27,7 @@ const StatCard: React.FC<{
 );
 
 const Dashboard: React.FC<DashboardProps> = ({ clients, onNavigateToClients, onNavigateToPlans }) => {
+    const { signOut } = useAuth();
     const stats = useMemo(() => {
         const totalClients = clients.length;
         const activeClients = clients.filter(c => c.status === Status.Ativo).length;
@@ -68,9 +70,19 @@ const Dashboard: React.FC<DashboardProps> = ({ clients, onNavigateToClients, onN
 
     return (
         <div className="space-y-6">
-            <header>
-                <h1 className="text-3xl font-bold text-white">📺 Dashboard Geral</h1>
-                <p className="text-slate-400 mt-1">Resumo do seu negócio.</p>
+            <header className="flex justify-between items-start">
+                <div>
+                    <h1 className="text-3xl font-bold text-white">📺 Dashboard Geral</h1>
+                    <p className="text-slate-400 mt-1">Resumo do seu negócio.</p>
+                </div>
+                <button
+                    onClick={signOut}
+                    className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white px-3 py-2 rounded-lg transition-colors border border-slate-700"
+                    title="Sair"
+                >
+                    <LogoutIcon />
+                    <span className="hidden sm:inline">Sair</span>
+                </button>
             </header>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

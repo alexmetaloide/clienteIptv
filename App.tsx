@@ -1,5 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
+import { supabase } from './config/supabase';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import Login from './components/Login';
 import { Client, Status } from './types';
 import { supabaseClientService } from './services/supabaseService';
 import Dashboard from './components/Dashboard';
@@ -18,7 +21,8 @@ type ClientSubPage = { page: 'detail', client: Client } | { page: 'form', client
 
 import { PlanProvider } from './contexts/PlanContext';
 
-export const App: React.FC = () => {
+export const AppContent: React.FC = () => {
+    const { user, loading, signOut } = useAuth();
     const [clients, setClients] = useState<Client[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState<Page>('dashboard');
@@ -26,7 +30,10 @@ export const App: React.FC = () => {
 
 
     // Carregar dados do "Banco de Dados" ao iniciar
+    // Carregar dados apenas se estiver autenticado
     useEffect(() => {
+        if (!user) return;
+
         const loadClients = async () => {
             try {
                 const data = await supabaseClientService.getAll();
@@ -38,7 +45,13 @@ export const App: React.FC = () => {
             }
         };
         loadClients();
-    }, []);
+    }, [user]);
+
+    if (loading) return null; // Or a loading spinner handled by AuthContext
+
+    if (!user) {
+        return <Login />;
+    }
 
 
 
@@ -148,8 +161,6 @@ export const App: React.FC = () => {
     return (
         <PlanProvider>
             <div className="min-h-screen bg-slate-900 text-white font-sans pb-20">
-
-
                 <div className="p-4 sm:p-6">
                     {renderContent()}
                 </div>
@@ -159,4 +170,10 @@ export const App: React.FC = () => {
     );
 };
 
-export default App;
+export default function App() {
+    return (
+        <AuthProvider>
+            <AppContent />
+        </AuthProvider>
+    );
+}
