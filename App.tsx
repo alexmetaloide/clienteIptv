@@ -67,19 +67,36 @@ export const AppContent: React.FC = () => {
     };
 
     const updateClient = async (updatedClient: Client) => {
+        console.log("updateClient called with:", updatedClient);
         // Atualização Otimista
         setClients(prevClients =>
             prevClients.map(c => (c.id === updatedClient.id ? updatedClient : c))
         );
-        // Persistência
-        await supabaseClientService.update(updatedClient.id, updatedClient);
+        try {
+            // Persistência
+            console.log("Sending update to Supabase...");
+            await supabaseClientService.update(updatedClient.id, updatedClient);
+            console.log("Supabase update successful!");
+        } catch (error) {
+            console.error("Erro ao atualizar cliente:", error);
+            // Revert state if needed, or notify user
+            // Revert: setClients(prevClients => prevClients.map(c => (c.id === updatedClient.id ? originalClient : c))); // Requires tracking original client
+            // For now, simpler notification:
+            alert(`Erro ao salvar alterações no banco de dados: ${(error as any).message || "Erro desconhecido"}. \n\nVocê rodou o comando SQL para atualizar o banco?`);
+        }
     };
 
     const deleteClient = async (clientId: string) => {
         // Atualização Otimista
         setClients(prevClients => prevClients.filter(c => c.id !== clientId));
-        // Persistência
-        await supabaseClientService.delete(clientId);
+        try {
+            // Persistência
+            await supabaseClientService.delete(clientId);
+        } catch (error) {
+            console.error("Erro ao excluir cliente:", error);
+            alert(`Erro ao excluir cliente: ${(error as any).message}`);
+            // Ideally revert here too
+        }
     };
 
     const handleUpdateAllClients = async (newClients: Client[]) => {

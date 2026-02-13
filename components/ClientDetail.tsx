@@ -92,7 +92,7 @@ Após o pagamento, envie o comprovante para confirmar e renovar sua assinatura. 
         setIsConfirmDeleteDialogOpen(false);
         onBack();
     };
-    
+
     return (
         <>
             <div className="space-y-6">
@@ -102,17 +102,56 @@ Após o pagamento, envie o comprovante para confirmar e renovar sua assinatura. 
                     </button>
                     <h1 className="text-2xl font-bold text-white ml-4">{client.name}</h1>
                 </header>
-                
+
                 <div className="bg-slate-800 p-4 sm:p-6 rounded-lg">
                     <DetailItem label="Contato" value={client.contact || 'Não informado'} />
                     <DetailItem label="Plano" value={client.plan} />
                     <DetailItem label="Valor Mensal" value={client.monthlyValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} />
                     <DetailItem label="Dia do Vencimento" value={`Todo dia ${client.dueDate}`} />
                     <DetailItem label="Status" value={
-                        <span className={`font-bold ${client.status === Status.Ativo ? 'text-green-400' : 'text-red-400'}`}>
-                            {client.status}
-                        </span>} 
+                        <div className="flex flex-col gap-1">
+                            <span className={`font-bold ${client.status === Status.Ativo ? 'text-green-400' : 'text-red-400'}`}>
+                                {client.status}
+                            </span>
+                            {client.paymentConfirmationPending && (
+                                <span className="text-yellow-400 text-sm font-medium">⚠ Pagamento em análise</span>
+                            )}
+                            {!client.paymentConfirmationPending && client.status === Status.Ativo && (() => {
+                                const today = new Date();
+                                const currentDay = today.getDate();
+                                // Simple overdue check: if today > dueDate and no pending payment
+                                // Ideally we would check months, but for now let's assume if it's past due date in current month, it's overdue
+                                // unless we have a lastPaymentDate in the current month.
+
+                                let isOverdue = false;
+                                if (client.lastPaymentDate) {
+                                    const lastPayment = new Date(client.lastPaymentDate);
+                                    // If last payment was before this month (and we are past due date), it's overdue
+                                    // Logic: Due date for this month is `dueDate`.
+                                    // If today >= `dueDate`, we expect a payment in THIS month (or later).
+                                    // If lastPayment month < this month, and today >= dueDate, then OVERDUE.
+
+                                    const isPaymentFromThisMonth = lastPayment.getMonth() === today.getMonth() && lastPayment.getFullYear() === today.getFullYear();
+                                    if (!isPaymentFromThisMonth && currentDay >= client.dueDate) {
+                                        isOverdue = true;
+                                    }
+                                } else {
+                                    // No last payment recorded. If today >= dueDate, it's overdue.
+                                    if (currentDay >= client.dueDate) {
+                                        isOverdue = true;
+                                    }
+                                }
+
+                                return isOverdue ? (
+                                    <span className="text-red-500 text-sm font-bold">🔴 MENSALIDADE VENCIDA</span>
+                                ) : (
+                                    <span className="text-green-500 text-sm">🟢 Em dia</span>
+                                );
+                            })()}
+                        </div>
+                    }
                     />
+                    <DetailItem label="Último Pagamento Confirmado" value={client.lastPaymentDate ? new Date(client.lastPaymentDate).toLocaleDateString('pt-BR') : 'Nenhum registro'} />
                     <DetailItem label="Valor Total Anual" value={annualValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} />
                 </div>
 
@@ -121,8 +160,8 @@ Após o pagamento, envie o comprovante para confirmar e renovar sua assinatura. 
                         <EditIcon />
                         <span className="mt-1 text-sm font-medium">Editar</span>
                     </button>
-                    <button 
-                        onClick={() => setIsReminderDialogOpen(true)} 
+                    <button
+                        onClick={() => setIsReminderDialogOpen(true)}
                         disabled={!client.contact}
                         className={`flex flex-col items-center p-3 rounded-lg transition-colors ${!client.contact ? 'bg-slate-600 text-slate-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600'}`}>
                         <WhatsAppIcon />
@@ -132,6 +171,50 @@ Após o pagamento, envie o comprovante para confirmar e renovar sua assinatura. 
                         {client.status === Status.Ativo ? <XCircleIcon /> : <CheckCircleIcon />}
                         <span className="mt-1 text-sm font-medium">{client.status === Status.Ativo ? 'Inativar' : 'Ativar'}</span>
                     </button>
+                    {/* Payment Buttons */}
+                    {client.status === Status.Ativo && !client.paymentConfirmationPending && (() => {
+                        const today = new Date();
+                        const currentDay = today.getDate();
+                        let isOverdue = false;
+                        if (client.lastPaymentDate) {
+                            const lastPayment = new Date(client.lastPaymentDate);
+                            const isPaymentFromThisMonth = lastPayment.getMonth() === today.getMonth() && lastPayment.getFullYear() === today.getFullYear();
+                            if (!isPaymentFromThisMonth && currentDay >= client.dueDate) isOverdue = true;
+                        } else {
+                            if (currentDay >= client.dueDate) isOverdue = true;
+                        }
+
+                        return isOverdue ? (
+                            <button
+                                onClick={() => {
+                                    console.log("Inform Payment button clicked for client:", client.id);
+                                    onUpdateStatus({ ...client, paymentConfirmationPending: true });
+                                }}
+                                className="flex flex-col items-center p-3 bg-yellow-500 hover:bg-yellow-600 rounded-lg transition-colors text-white"
+                            >
+                                <span className="text-2xl">🕒</span>
+                                <span className="mt-1 text-sm font-medium">Informar Pagamento</span>
+                            </button>
+                        ) : null;
+                    })()}
+
+                    {client.paymentConfirmationPending && (
+                        <button
+                            onClick={() => {
+                                const today = new Date();
+                                onUpdateStatus({
+                                    ...client,
+                                    paymentConfirmationPending: false,
+                                    lastPaymentDate: today.toISOString()
+                                });
+                            }}
+                            className="flex flex-col items-center p-3 bg-green-600 hover:bg-green-700 rounded-lg transition-colors text-white"
+                        >
+                            <span className="text-2xl">✅</span>
+                            <span className="mt-1 text-sm font-medium">Confirmar Pagamento</span>
+                        </button>
+                    )}
+
                     <button onClick={handleDeleteRequest} className="flex flex-col items-center p-3 bg-slate-600 hover:bg-slate-700 rounded-lg transition-colors">
                         <TrashIcon />
                         <span className="mt-1 text-sm font-medium">Excluir</span>

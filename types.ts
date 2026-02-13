@@ -18,4 +18,6 @@ export interface Client {
   monthlyValue: number;
   dueDate: number;
   status: Status;
+  lastPaymentDate?: string; // ISO Date string of last confirmed payment
+  paymentConfirmationPending?: boolean; // If true, payment is informed but not confirmed
 }

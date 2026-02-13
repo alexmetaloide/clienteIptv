@@ -60,6 +60,8 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onSave, onBack }) => {
             monthlyValue,
             dueDate,
             status,
+            lastPaymentDate: client?.lastPaymentDate,
+            paymentConfirmationPending: client?.paymentConfirmationPending,
         };
         onSave(clientPayload);
     };

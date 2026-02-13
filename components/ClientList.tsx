@@ -140,12 +140,48 @@ const ClientList: React.FC<ClientListProps> = ({ clients, onSelectClient, onAddC
         reader.readAsText(file);
     };
 
-    const StatusBadge: React.FC<{ status: Status }> = ({ status }) => (
-        <span className={`flex items-center text-sm font-medium ${status === Status.Ativo ? 'text-green-400' : 'text-red-400'}`}>
-            <span className={`h-2 w-2 rounded-full mr-2 ${status === Status.Ativo ? 'bg-green-500' : 'bg-red-500'}`}></span>
-            {status}
-        </span>
-    );
+    const StatusBadge: React.FC<{ client: Client }> = ({ client }) => {
+        let statusColor = 'bg-gray-500';
+        let statusText = client.status;
+        let textColor = 'text-gray-400';
+
+        if (client.status === Status.Ativo) {
+            statusColor = 'bg-green-500';
+            textColor = 'text-green-400';
+
+            // Overdue check
+            const today = new Date();
+            const currentDay = today.getDate();
+            let isOverdue = false;
+            if (client.lastPaymentDate) {
+                const lastPayment = new Date(client.lastPaymentDate);
+                const isPaymentFromThisMonth = lastPayment.getMonth() === today.getMonth() && lastPayment.getFullYear() === today.getFullYear();
+                if (!isPaymentFromThisMonth && currentDay >= client.dueDate) isOverdue = true;
+            } else {
+                if (currentDay >= client.dueDate) isOverdue = true;
+            }
+
+            if (client.paymentConfirmationPending) {
+                statusColor = 'bg-yellow-500';
+                textColor = 'text-yellow-400';
+                statusText = 'Análise';
+            } else if (isOverdue) {
+                statusColor = 'bg-red-500';
+                textColor = 'text-red-400';
+                statusText = 'Vencido';
+            }
+        } else {
+            statusColor = 'bg-red-500';
+            textColor = 'text-red-400';
+        }
+
+        return (
+            <span className={`flex items-center text-sm font-medium ${textColor}`}>
+                <span className={`h-2 w-2 rounded-full mr-2 ${statusColor}`}></span>
+                {statusText}
+            </span>
+        );
+    };
 
     return (
         <div className="space-y-4">
@@ -233,7 +269,7 @@ const ClientList: React.FC<ClientListProps> = ({ clients, onSelectClient, onAddC
                         <div key={client.id} onClick={() => onSelectClient(client)} className="bg-slate-800 p-4 rounded-lg cursor-pointer hover:bg-slate-700 transition-colors">
                             <div className="flex justify-between items-center">
                                 <p className="font-bold text-lg text-white">{client.name}</p>
-                                <StatusBadge status={client.status} />
+                                <StatusBadge client={client} />
                             </div>
                             <div className="flex justify-between items-center text-slate-400 mt-2 text-sm">
                                 <span>{client.plan}</span>
